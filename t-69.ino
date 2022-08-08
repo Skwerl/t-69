@@ -2,11 +2,8 @@
 ///////////////////////* Libraries *////////////////////////////////////////////////////////////////
 /*////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-#include <Wire.h>
 #include <Servo.h>
-#include <SoftwareSerial.h>
 #include <Adafruit_PWMServoDriver.h>
-
 #include "SwitchBT.h"
 #include <usbhub.h>
 
@@ -30,7 +27,6 @@ bool bluetoothInit = false;
 /*////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
-
 #define SERVO_FREQ 50
 #define SERVO_OSC_FREQ 27000000
 
@@ -38,12 +34,11 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 ///////////////////////* Head Left/Right *//////////////////////////////////////////////////////////
 /*////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-uint8_t servonum = 2;
-
-float xmin = 200;
-float xmax = 460;
-float xcenter = xmin + ((xmax - xmin) / 2);
-float xtarget = xcenter;
+uint8_t headX_channel = 2;
+float headX_min = 200;
+float headX_max = 460;
+float headX_center = headX_min + ((headX_max - headX_min) / 2);
+float headX_target = headX_center;
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////*/
 ///////////////////////* Switch Parsing *///////////////////////////////////////////////////////////
@@ -174,45 +169,45 @@ void handleEvent() {
     }
   } else {
 
-      Serial.print("IDL");
-      Serial.print(state.Idle);
-      Serial.print(".");
-      Serial.print("UBT");
-      Serial.print(state.U_Button);
-      Serial.print(".");
-      Serial.print("DBT");
-      Serial.print(state.D_Button);
-      Serial.print(".");
-      Serial.print("LBT");
-      Serial.print(state.L_Button);
-      Serial.print(".");
-      Serial.print("RBT");
-      Serial.print(state.R_Button);
-      Serial.print(".");
-      Serial.print("SLB");
-      Serial.print(state.SL_Button);
-      Serial.print(".");
-      Serial.print("SRB");
-      Serial.print(state.SR_Button);
-      Serial.print(".");
-      Serial.print("LTR");
-      Serial.print(state.L_Trigger);
-      Serial.print(".");
-      Serial.print("ZLT");
-      Serial.print(state.ZL_Trigger);
-      Serial.print(".");
-      Serial.print("STK");
-      Serial.print(state.Stick_Button);
-      Serial.print(".");
-      Serial.print("SEL");
-      Serial.print(state.Select_Button);
-      Serial.print(".");
-      Serial.print("ACK");
-      Serial.print(state.Action_Button);
-      Serial.print(".");
-      Serial.print("ANA");
-      Serial.print(state.Analog_Stick);
-      Serial.println("");
+    Serial.print("IDL");
+    Serial.print(state.Idle);
+    Serial.print(".");
+    Serial.print("UBT");
+    Serial.print(state.U_Button);
+    Serial.print(".");
+    Serial.print("DBT");
+    Serial.print(state.D_Button);
+    Serial.print(".");
+    Serial.print("LBT");
+    Serial.print(state.L_Button);
+    Serial.print(".");
+    Serial.print("RBT");
+    Serial.print(state.R_Button);
+    Serial.print(".");
+    Serial.print("SLB");
+    Serial.print(state.SL_Button);
+    Serial.print(".");
+    Serial.print("SRB");
+    Serial.print(state.SR_Button);
+    Serial.print(".");
+    Serial.print("LTR");
+    Serial.print(state.L_Trigger);
+    Serial.print(".");
+    Serial.print("ZLT");
+    Serial.print(state.ZL_Trigger);
+    Serial.print(".");
+    Serial.print("STK");
+    Serial.print(state.Stick_Button);
+    Serial.print(".");
+    Serial.print("SEL");
+    Serial.print(state.Select_Button);
+    Serial.print(".");
+    Serial.print("ACK");
+    Serial.print(state.Action_Button);
+    Serial.print(".");
+    Serial.print("ANA");
+    Serial.print(state.Analog_Stick);
+    Serial.println("");
 
     doAction();
 
@@ -225,7 +220,7 @@ void allButtonsReleased() {
 }
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////*/
-///////////////////////* BB-8 Logic *///////////////////////////////////////////////////////////////
+///////////////////////* T-69 Logic *///////////////////////////////////////////////////////////////
 /*////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 #define SERIAL_BAUD 115200
@@ -253,22 +248,13 @@ void doAction(void) {
     }
   }
 
-  if (driveW) {
-    xtarget++;
-  }
-  if (driveE) {
-    xtarget--;
-  }
-  if (xtarget <= xmin) {
-    xtarget = xmin;
-  }
-  if (xtarget >= xmax) {
-    xtarget = xmax;
-  }
+  if (driveW) { headX_target++; }
+  if (driveE) { headX_target--; }
 
-  if (!driveE && !driveW) {
-    xtarget = xcenter;
-  }
+  if (headX_target <= headX_min) { headX_target = headX_min; }
+  if (headX_target >= headX_max) { headX_target = headX_max; }
+
+  if (!driveE && !driveW) { headX_target = headX_center; }
 
   if (state.Action_Button) {
     restDrive();
@@ -283,8 +269,8 @@ void restDrive(void) {
 }
 
 void sendMove(void) {
-  //Serial.println(xtarget);
-  pwm.setPWM(servonum, 0, xtarget);
+  //Serial.println(headX_target);
+  pwm.setPWM(headX_channel, 0, headX_target);
 }
 
 void wakeUp() {
