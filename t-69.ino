@@ -72,6 +72,12 @@ SwitchButtons state = reset;
 
 void handleEvent() {
 
+  for (int i = 0; i < 7; i++) {
+    Serial.print(Report[i]);
+    Serial.print(" ");
+  }
+  Serial.println("");
+
   if (Report[0] == 0 && Report[1] == 0 && Report[2] == 8) {
 
     allButtonsReleased();
@@ -169,6 +175,7 @@ void handleEvent() {
     }
   } else {
 
+    /*
     Serial.print("IDL");
     Serial.print(state.Idle);
     Serial.print(".");
@@ -208,6 +215,7 @@ void handleEvent() {
     Serial.print("ANA");
     Serial.print(state.Analog_Stick);
     Serial.println("");
+    */
 
     doAction();
 

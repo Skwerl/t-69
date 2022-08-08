@@ -149,8 +149,8 @@ void SwHID::ACLData(uint8_t* l2capinbuf) {
       }
     } else if (l2capinbuf[6] == interrupt_dcid[0] && l2capinbuf[7] == interrupt_dcid[1]) {
 
-      // The data we need from the Joy-Con is these three bytes:
-      byte report[] = {l2capinbuf[10],l2capinbuf[11],l2capinbuf[12]};
+      // The data we need from the Joy-Con is these bytes:
+      byte report[] = {l2capinbuf[10],l2capinbuf[11],l2capinbuf[12],l2capinbuf[14],l2capinbuf[16],l2capinbuf[18],l2capinbuf[20]};
       ParseSwHIDData(sizeof(report), report);
 
     } else if (l2capinbuf[6] == control_dcid[0] && l2capinbuf[7] == control_dcid[1]) {

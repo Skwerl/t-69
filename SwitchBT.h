@@ -8,18 +8,18 @@
    It uses the BTHID class for all the Bluetooth communication.
 */
 class SwitchBT : public SwHID {
-  
+
   public:
-    
+
     SwitchBT(BTD *p, bool pair = false, const char *pin = "0000") :
       SwHID(p, pair, pin) {
     };
-    
+
     bool connected() {
       return SwHID::connected;
     };
 
-    byte Report[3]; 
+    byte Report[7];
 
   protected:
 
@@ -28,14 +28,11 @@ class SwitchBT : public SwHID {
       Report[0] = buf[0];
       Report[1] = buf[1];
       Report[2] = buf[2];
+      Report[3] = buf[3];
+      Report[4] = buf[4];
+      Report[5] = buf[5];
+      Report[6] = buf[6];
 
-      /*
-      Serial.print(buf[0]); Serial.print(" ");
-      Serial.print(buf[1]); Serial.print(" ");
-      Serial.print(buf[2]); Serial.print(" ");
-      Serial.println();
-      */
-      
     };
 
     virtual void OnInitSwHID() {
@@ -47,7 +44,7 @@ class SwitchBT : public SwHID {
     };
 
   private:
-    
+
     void HID_Command(uint8_t *data, uint8_t nbytes) {
       pBtd->L2CAP_Command(hci_handle, data, nbytes, control_scid[0], control_scid[1]);
     };
