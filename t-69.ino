@@ -63,10 +63,12 @@ struct SwitchButtons {
   bool Home_Button;
   bool Action_Button;
   int D_Pad;
-  int Analog_StickL;
-  int Analog_StickR;
+  int Analog_StickL_X;
+  int Analog_StickL_Y;
+  int Analog_StickR_X;
+  int Analog_StickR_Y;
 };
-SwitchButtons reset = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+SwitchButtons reset = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 SwitchButtons state = reset;
 
 void handleEvent() {
@@ -161,7 +163,7 @@ void handleEvent() {
   }
 
   if (!bluetoothInit) {
-    if (state.Analog_StickL > 0) {
+    if (state.Analog_StickL_X > 0) {
       return;
     } else {
       bluetoothInit = true;
