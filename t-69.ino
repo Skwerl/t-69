@@ -48,35 +48,28 @@ byte* Report;
 
 struct SwitchButtons {
   bool Idle;
-  bool U_Button;
-  bool D_Button;
-  bool L_Button;
-  bool R_Button;
-  bool Y_Button;
-  bool X_Button;
   bool B_Button;
   bool A_Button;
-  bool SL_Button;
-  bool SR_Button;
+  bool Y_Button;
+  bool X_Button;
   bool L_Trigger;
-  bool ZL_Trigger;
   bool R_Trigger;
+  bool ZL_Trigger;
   bool ZR_Trigger;
-  bool Stick_Button;
+  bool StickL_Button;
+  bool StickR_Button;
   bool Select_Button;
+  bool Start_Button;
+  bool Home_Button;
   bool Action_Button;
-  int Analog_Stick;
+  int D_Pad;
+  int Analog_StickL;
+  int Analog_StickR;
 };
-SwitchButtons reset = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+SwitchButtons reset = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 SwitchButtons state = reset;
 
 void handleEvent() {
-
-  for (int i = 0; i < 7; i++) {
-    Serial.print(Report[i]);
-    Serial.print(" ");
-  }
-  Serial.println("");
 
   if (Report[0] == 0 && Report[1] == 0 && Report[2] == 8) {
 
@@ -88,84 +81,87 @@ void handleEvent() {
     state.Idle = 0;
 
     switch (Report[0]) {
-      case 4:
-        state.U_Button = 1;
+      case 1:
         state.B_Button = 1;
         break;
       case 2:
-        state.D_Button = 1;
-        state.X_Button = 1;
-        break;
-      case 1:
-        state.L_Button = 1;
         state.A_Button = 1;
         break;
-      case 8:
-        state.R_Button = 1;
+      case 4:
         state.Y_Button = 1;
         break;
+      case 8:
+        state.X_Button = 1;
+        break;
       case 16:
-        state.SL_Button = 1;
+        state.L_Trigger = 1;
         break;
       case 32:
-        state.SR_Button = 1;
+        state.R_Trigger = 1;
+        break;
+      case 64:
+        state.ZL_Trigger = 1;
+        break;
+      case 128:
+        state.ZR_Trigger = 1;
         break;
     }
     switch (Report[1]) {
-      case 64:
-        state.L_Trigger = 1;
-        state.R_Trigger = 1;
-        break;
-      case 128:
-        state.ZL_Trigger = 1;
-        state.ZR_Trigger = 1;
-        break;
       case 1:
-      case 2:
         state.Select_Button = 1;
+        break;
+      case 2:
+        state.Start_Button = 1;
+        break;
+      case 16:
+        state.Home_Button = 1;
         break;
       case 32:
         state.Action_Button = 1;
         break;
       case 4:
+        state.StickL_Button = 1;
+        break;
       case 8:
-        state.Stick_Button = 1;
+        state.StickR_Button = 1;
         break;
     }
     switch (Report[2]) {
       case 8:
-        state.Analog_Stick = 0;
+        state.D_Pad = 0;
         break;
       case 7:
-        state.Analog_Stick = 45;
+        state.D_Pad = 45;
         break;
       case 0:
-        state.Analog_Stick = 90;
+        state.D_Pad = 90;
         break;
       case 1:
-        state.Analog_Stick = 135;
+        state.D_Pad = 135;
         break;
       case 2:
-        state.Analog_Stick = 180;
+        state.D_Pad = 180;
         break;
       case 3:
-        state.Analog_Stick = 225;
+        state.D_Pad = 225;
         break;
       case 4:
-        state.Analog_Stick = 270;
+        state.D_Pad = 270;
         break;
       case 5:
-        state.Analog_Stick = 315;
+        state.D_Pad = 315;
         break;
       case 6:
-        state.Analog_Stick = 360;
+        state.D_Pad = 360;
         break;
     }
+
+    // TODO: Parse analog stick inputs
 
   }
 
   if (!bluetoothInit) {
-    if (state.Analog_Stick > 0) {
+    if (state.Analog_StickL > 0) {
       return;
     } else {
       bluetoothInit = true;
@@ -179,41 +175,51 @@ void handleEvent() {
     Serial.print("IDL");
     Serial.print(state.Idle);
     Serial.print(".");
-    Serial.print("UBT");
-    Serial.print(state.U_Button);
+    Serial.print("B");
+    Serial.print(state.B_Button);
     Serial.print(".");
-    Serial.print("DBT");
-    Serial.print(state.D_Button);
+    Serial.print("A");
+    Serial.print(state.A_Button);
     Serial.print(".");
-    Serial.print("LBT");
-    Serial.print(state.L_Button);
+    Serial.print("Y");
+    Serial.print(state.Y_Button);
     Serial.print(".");
-    Serial.print("RBT");
-    Serial.print(state.R_Button);
+    Serial.print("X");
+    Serial.print(state.X_Button);
     Serial.print(".");
-    Serial.print("SLB");
-    Serial.print(state.SL_Button);
-    Serial.print(".");
-    Serial.print("SRB");
-    Serial.print(state.SR_Button);
-    Serial.print(".");
-    Serial.print("LTR");
+    Serial.print("L");
     Serial.print(state.L_Trigger);
     Serial.print(".");
-    Serial.print("ZLT");
+    Serial.print("R");
+    Serial.print(state.R_Trigger);
+    Serial.print(".");
+    Serial.print("ZL");
     Serial.print(state.ZL_Trigger);
     Serial.print(".");
-    Serial.print("STK");
-    Serial.print(state.Stick_Button);
+    Serial.print("ZR");
+    Serial.print(state.ZR_Trigger);
     Serial.print(".");
     Serial.print("SEL");
     Serial.print(state.Select_Button);
     Serial.print(".");
+    Serial.print("STR");
+    Serial.print(state.Start_Button);
+    Serial.print(".");
     Serial.print("ACK");
     Serial.print(state.Action_Button);
     Serial.print(".");
-    Serial.print("ANA");
-    Serial.print(state.Analog_Stick);
+    Serial.print("HOM");
+    Serial.print(state.Home_Button);
+    Serial.print(".");
+    Serial.print("DPAD");
+    Serial.print(state.D_Pad);
+    Serial.print(".");
+    Serial.print("STKL");
+    Serial.print(state.StickL_Button);
+    Serial.print(".");
+    Serial.print("STKR");
+    Serial.print(state.StickR_Button);
+    Serial.print(".");
     Serial.println("");
     */
 
@@ -240,18 +246,18 @@ boolean driveW = false;
 
 void doAction(void) {
 
-  driveS = state.U_Button;
-  driveN = state.D_Button;
-  driveE = state.L_Button;
-  driveW = state.R_Button;
+  driveS = false;
+  driveN = false;
+  driveE = false;
+  driveW = false;
 
-  if (state.Analog_Stick > 0) {
-    //if (state.Analog_Stick >= 315 || state.Analog_Stick <= 045) { driveS = true; }
-    if (state.Analog_Stick == 360) {
+  if (state.D_Pad > 0) {
+    //if (state.D_Pad >= 315 || state.D_Pad <= 045) { driveS = true; }
+    if (state.D_Pad == 360) {
       driveW = true;
     }
-    //if (state.Analog_Stick >= 135 && state.Analog_Stick <= 225) { driveN = true; }
-    if (state.Analog_Stick == 180) {
+    //if (state.D_Pad >= 135 && state.D_Pad <= 225) { driveN = true; }
+    if (state.D_Pad == 180) {
       driveE = true;
     }
   }
