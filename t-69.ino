@@ -34,9 +34,9 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 ///////////////////////* Head Movement *////////////////////////////////////////////////////////////
 /*////////////////////////////////////////////////////////////////////////////////////////////////*/
 
-uint8_t headX_channel = 2;
+uint8_t headX_channel = 6;
 float headX_min = 200;
-float headX_max = 460;
+float headX_max = 420;
 float headX_center = headX_min + ((headX_max - headX_min) / 2);
 
 uint8_t headY_channel = 7;
@@ -44,7 +44,7 @@ float headY_min = 200;
 float headY_max = 400;
 float headY_center = headY_min + ((headY_max - headY_min) / 2);
 
-uint8_t headR_channel = 6;
+uint8_t headR_channel = 3;
 float headR_min = 200;
 float headR_max = 460;
 float headR_center = headR_min + ((headR_max - headR_min) / 2);
@@ -98,6 +98,24 @@ float Analog_Stick_Y_DZ_Min = 118;
 float Analog_Stick_Y_DZ_Max = 130;
 
 void handleEvent() {
+
+  /*
+  Serial.print(Report[0]);
+  Serial.print(" ");
+  Serial.print(Report[1]);
+  Serial.print(" ");
+  Serial.print(Report[2]);
+  Serial.print(" ");
+  Serial.print(Report[3]);
+  Serial.print(" ");
+  Serial.print(Report[4]);
+  Serial.print(" ");
+  Serial.print(Report[5]);
+  Serial.print(" ");
+  Serial.print(Report[6]);
+  Serial.print(" ");
+  Serial.println("");
+  */
 
   allButtonsReleased();
 
@@ -405,65 +423,65 @@ void handleEvent() {
     }
   } else {
 
-    Serial.print("IDL");
-    Serial.print(state.Idle);
-    Serial.print(".");
-    Serial.print("B");
-    Serial.print(state.B_Button);
-    Serial.print(".");
-    Serial.print("A");
-    Serial.print(state.A_Button);
-    Serial.print(".");
-    Serial.print("Y");
-    Serial.print(state.Y_Button);
-    Serial.print(".");
-    Serial.print("X");
-    Serial.print(state.X_Button);
-    Serial.print(".");
-    Serial.print("L");
-    Serial.print(state.L_Trigger);
-    Serial.print(".");
-    Serial.print("R");
-    Serial.print(state.R_Trigger);
-    Serial.print(".");
-    Serial.print("ZL");
-    Serial.print(state.ZL_Trigger);
-    Serial.print(".");
-    Serial.print("ZR");
-    Serial.print(state.ZR_Trigger);
-    Serial.print(".");
-    Serial.print("SEL");
-    Serial.print(state.Select_Button);
-    Serial.print(".");
-    Serial.print("STR");
-    Serial.print(state.Start_Button);
-    Serial.print(".");
-    Serial.print("ACK");
-    Serial.print(state.Action_Button);
-    Serial.print(".");
-    Serial.print("HOM");
-    Serial.print(state.Home_Button);
-    Serial.print(".");
-    Serial.print("DPAD");
-    Serial.print(state.D_Pad);
-    Serial.print(".");
-    Serial.print("STKL");
-    Serial.print(state.StickL_Button);
-    Serial.print(".");
-    Serial.print("STKR");
-    Serial.print(state.StickR_Button);
-    Serial.print(".");
-    Serial.print("ANA1`");
-    Serial.print(state.Analog_StickL_X);
-    Serial.print(",");
-    Serial.print(state.Analog_StickL_Y);
-    Serial.print(".");
-    Serial.print("ANA2`");
-    Serial.print(state.Analog_StickR_X);
-    Serial.print(",");
-    Serial.print(state.Analog_StickR_Y);
-    Serial.print(".");
-    Serial.println("");
+      Serial.print("IDL");
+      Serial.print(state.Idle);
+      Serial.print(".");
+      Serial.print("B");
+      Serial.print(state.B_Button);
+      Serial.print(".");
+      Serial.print("A");
+      Serial.print(state.A_Button);
+      Serial.print(".");
+      Serial.print("Y");
+      Serial.print(state.Y_Button);
+      Serial.print(".");
+      Serial.print("X");
+      Serial.print(state.X_Button);
+      Serial.print(".");
+      Serial.print("L");
+      Serial.print(state.L_Trigger);
+      Serial.print(".");
+      Serial.print("R");
+      Serial.print(state.R_Trigger);
+      Serial.print(".");
+      Serial.print("ZL");
+      Serial.print(state.ZL_Trigger);
+      Serial.print(".");
+      Serial.print("ZR");
+      Serial.print(state.ZR_Trigger);
+      Serial.print(".");
+      Serial.print("SEL");
+      Serial.print(state.Select_Button);
+      Serial.print(".");
+      Serial.print("STR");
+      Serial.print(state.Start_Button);
+      Serial.print(".");
+      Serial.print("ACK");
+      Serial.print(state.Action_Button);
+      Serial.print(".");
+      Serial.print("HOM");
+      Serial.print(state.Home_Button);
+      Serial.print(".");
+      Serial.print("DPAD");
+      Serial.print(state.D_Pad);
+      Serial.print(".");
+      Serial.print("STKL");
+      Serial.print(state.StickL_Button);
+      Serial.print(".");
+      Serial.print("STKR");
+      Serial.print(state.StickR_Button);
+      Serial.print(".");
+      Serial.print("ANA1`");
+      Serial.print(state.Analog_StickL_X);
+      Serial.print(",");
+      Serial.print(state.Analog_StickL_Y);
+      Serial.print(".");
+      Serial.print("ANA2`");
+      Serial.print(state.Analog_StickR_X);
+      Serial.print(",");
+      Serial.print(state.Analog_StickR_Y);
+      Serial.print(".");
+      Serial.println("");
 
     doAction();
 
@@ -500,17 +518,23 @@ void doAction(void) {
   // Calculate head rotation:
   bool rotateHeadL = state.L_Trigger;
   bool rotateHeadR = state.R_Trigger;
-  if (rotateHeadL) { headR_target++; }
-  if (rotateHeadR) { headR_target--; }
+  if (rotateHeadL) {
+    headR_target++;
+  }
+  if (rotateHeadR) {
+    headR_target--;
+  }
   headR_target = constrain(headR_target, headR_min, headR_max);
-  if (!rotateHeadL && !rotateHeadR) { headR_target = headR_center; }
+  if (!rotateHeadL && !rotateHeadR) {
+    headR_target = headR_center;
+  }
   //Serial.println(headR_target);
 
   // Send movements:
 
   pwm.setPWM(headX_channel, 0, headX_target);
   pwm.setPWM(headY_channel, 0, headY_target);
-  //pwm.setPWM(headR_channel, 0, headR_target);
+  //pwm.setPWM(headR_channel, 0, headR_target); // This breaks everything and I don't know why!!
 
 }
 
