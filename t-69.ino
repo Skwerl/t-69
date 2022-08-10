@@ -44,6 +44,12 @@ float headY_min = 200;
 float headY_max = 400;
 float headY_center = headY_min + ((headY_max - headY_min) / 2);
 
+uint8_t headR_channel = 6;
+float headR_min = 200;
+float headR_max = 460;
+float headR_center = headR_min + ((headR_max - headR_min) / 2);
+float headR_target = headR_center;
+
 /*////////////////////////////////////////////////////////////////////////////////////////////////*/
 ///////////////////////* Switch Parsing *///////////////////////////////////////////////////////////
 /*////////////////////////////////////////////////////////////////////////////////////////////////*/
@@ -481,17 +487,7 @@ void doAction(void) {
     restDrive();
   }
 
-  sendMove();
-
-}
-
-void restDrive(void) {
-  Serial.println("restDrive");
-}
-
-void sendMove(void) {
-
-  // Head movement:
+  // Calculate head movement:
   float headX_target = headX_center;
   float headY_target = headY_center;
   if (state.Analog_StickR_X > 0) {
@@ -500,9 +496,26 @@ void sendMove(void) {
   if (state.Analog_StickR_Y > 0) {
     headY_target = map(state.Analog_StickR_Y, Analog_StickR_Y_Max, Analog_StickR_Y_Min, headY_min, headY_max);
   }
+
+  // Calculate head rotation:
+  bool rotateHeadL = state.L_Trigger;
+  bool rotateHeadR = state.R_Trigger;
+  if (rotateHeadL) { headR_target++; }
+  if (rotateHeadR) { headR_target--; }
+  headR_target = constrain(headR_target, headR_min, headR_max);
+  if (!rotateHeadL && !rotateHeadR) { headR_target = headR_center; }
+  //Serial.println(headR_target);
+
+  // Send movements:
+
   pwm.setPWM(headX_channel, 0, headX_target);
   pwm.setPWM(headY_channel, 0, headY_target);
+  //pwm.setPWM(headR_channel, 0, headR_target);
 
+}
+
+void restDrive(void) {
+  Serial.println("restDrive");
 }
 
 void wakeUp() {
