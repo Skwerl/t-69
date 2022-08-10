@@ -31,14 +31,18 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 #define SERVO_OSC_FREQ 27000000
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////*/
-///////////////////////* Head Left/Right *//////////////////////////////////////////////////////////
+///////////////////////* Head Movement *////////////////////////////////////////////////////////////
 /*////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 uint8_t headX_channel = 2;
 float headX_min = 200;
 float headX_max = 460;
 float headX_center = headX_min + ((headX_max - headX_min) / 2);
-float headX_target = headX_center;
+
+uint8_t headY_channel = 7;
+float headY_min = 200;
+float headY_max = 400;
+float headY_center = headY_min + ((headY_max - headY_min) / 2);
 
 /*////////////////////////////////////////////////////////////////////////////////////////////////*/
 ///////////////////////* Switch Parsing *///////////////////////////////////////////////////////////
@@ -71,99 +75,322 @@ struct SwitchButtons {
 SwitchButtons reset = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 SwitchButtons state = reset;
 
+// Define stick signal ranges:
+float Analog_StickL_X_Min = 40;
+float Analog_StickL_X_Max = 225;
+float Analog_StickL_Y_Min = 20;
+float Analog_StickL_Y_Max = 216;
+float Analog_StickR_X_Min = 48;
+float Analog_StickR_X_Max = 220;
+float Analog_StickR_Y_Min = 32;
+float Analog_StickR_Y_Max = 210;
+
+// Define stick dead zones:
+float Analog_Stick_X_DZ_Min = 120;
+float Analog_Stick_X_DZ_Max = 145;
+float Analog_Stick_Y_DZ_Min = 118;
+float Analog_Stick_Y_DZ_Max = 130;
+
 void handleEvent() {
 
-  if (Report[0] == 0 && Report[1] == 0 && Report[2] == 8) {
+  allButtonsReleased();
 
-    allButtonsReleased();
-    state.Idle = 1;
+  state.Analog_StickL_X = constrain(Report[3], Analog_StickL_X_Min, Analog_StickL_X_Max);
+  state.Analog_StickL_Y = constrain(Report[4], Analog_StickL_Y_Min, Analog_StickL_Y_Max);
+  state.Analog_StickR_X = constrain(Report[5], Analog_StickR_X_Min, Analog_StickR_X_Max);
+  state.Analog_StickR_Y = constrain(Report[6], Analog_StickR_Y_Min, Analog_StickR_Y_Max);
 
+  bool Idle_Sticks = true;
+
+  if (state.Analog_StickL_X >= Analog_Stick_X_DZ_Min && state.Analog_StickL_X <= Analog_Stick_X_DZ_Max) {
+    state.Analog_StickL_X = 0;
   } else {
-
-    state.Idle = 0;
-
-    switch (Report[0]) {
-      case 1:
-        state.B_Button = 1;
-        break;
-      case 2:
-        state.A_Button = 1;
-        break;
-      case 4:
-        state.Y_Button = 1;
-        break;
-      case 8:
-        state.X_Button = 1;
-        break;
-      case 16:
-        state.L_Trigger = 1;
-        break;
-      case 32:
-        state.R_Trigger = 1;
-        break;
-      case 64:
-        state.ZL_Trigger = 1;
-        break;
-      case 128:
-        state.ZR_Trigger = 1;
-        break;
-    }
-    switch (Report[1]) {
-      case 1:
-        state.Select_Button = 1;
-        break;
-      case 2:
-        state.Start_Button = 1;
-        break;
-      case 16:
-        state.Home_Button = 1;
-        break;
-      case 32:
-        state.Action_Button = 1;
-        break;
-      case 4:
-        state.StickL_Button = 1;
-        break;
-      case 8:
-        state.StickR_Button = 1;
-        break;
-    }
-    switch (Report[2]) {
-      case 8:
-        state.D_Pad = 0;
-        break;
-      case 7:
-        state.D_Pad = 45;
-        break;
-      case 0:
-        state.D_Pad = 90;
-        break;
-      case 1:
-        state.D_Pad = 135;
-        break;
-      case 2:
-        state.D_Pad = 180;
-        break;
-      case 3:
-        state.D_Pad = 225;
-        break;
-      case 4:
-        state.D_Pad = 270;
-        break;
-      case 5:
-        state.D_Pad = 315;
-        break;
-      case 6:
-        state.D_Pad = 360;
-        break;
-    }
-
-    // TODO: Parse analog stick inputs
-
+    Idle_Sticks = false;
   }
 
+  if (state.Analog_StickL_Y >= Analog_Stick_Y_DZ_Min && state.Analog_StickL_Y <= Analog_Stick_Y_DZ_Max) {
+    state.Analog_StickL_Y = 0;
+  } else {
+    Idle_Sticks = false;
+  }
+
+  if (state.Analog_StickR_X >= Analog_Stick_X_DZ_Min && state.Analog_StickR_X <= Analog_Stick_X_DZ_Max) {
+    state.Analog_StickR_X = 0;
+  } else {
+    Idle_Sticks = false;
+  }
+
+  if (state.Analog_StickR_Y >= Analog_Stick_Y_DZ_Min && state.Analog_StickR_Y <= Analog_Stick_Y_DZ_Max) {
+    state.Analog_StickR_Y = 0;
+  } else {
+    Idle_Sticks = false;
+  }
+
+  if (Report[0] == 0 && Report[1] == 0 && Report[2] == 8 && Idle_Sticks) {
+    state.Idle = 1;
+  }
+
+  switch (Report[0]) {
+    case 1:
+      state.B_Button = 1;
+      break;
+    case 2:
+      state.A_Button = 1;
+      break;
+    case 4:
+      state.Y_Button = 1;
+      break;
+    case 8:
+      state.X_Button = 1;
+      break;
+    case 16:
+      state.L_Trigger = 1;
+      break;
+    case 32:
+      state.R_Trigger = 1;
+      break;
+    case 64:
+      state.ZL_Trigger = 1;
+      break;
+    case 128:
+      state.ZR_Trigger = 1;
+      break;
+    case 48:
+      state.L_Trigger = 1;
+      state.R_Trigger = 1;
+      break;
+    case 192:
+      state.ZL_Trigger = 1;
+      state.ZR_Trigger = 1;
+      break;
+    case 80:
+      state.L_Trigger = 1;
+      state.ZL_Trigger = 1;
+      break;
+    case 160:
+      state.R_Trigger = 1;
+      state.ZR_Trigger = 1;
+      break;
+    case 240:
+      state.L_Trigger = 1;
+      state.R_Trigger = 1;
+      state.ZL_Trigger = 1;
+      state.ZR_Trigger = 1;
+      break;
+    case 3:
+      state.B_Button = 1;
+      state.A_Button = 1;
+      break;
+    case 5:
+      state.Y_Button = 1;
+      state.B_Button = 1;
+      break;
+    case 10:
+      state.X_Button = 1;
+      state.A_Button = 1;
+      break;
+    case 12:
+      state.Y_Button = 1;
+      state.X_Button = 1;
+      break;
+    case 17:
+      state.L_Trigger = 1;
+      state.B_Button = 1;
+      break;
+    case 18:
+      state.L_Trigger = 1;
+      state.A_Button = 1;
+      break;
+    case 20:
+      state.L_Trigger = 1;
+      state.Y_Button = 1;
+      break;
+    case 24:
+      state.L_Trigger = 1;
+      state.X_Button = 1;
+      break;
+    case 33:
+      state.R_Trigger = 1;
+      state.B_Button = 1;
+      break;
+    case 34:
+      state.R_Trigger = 1;
+      state.A_Button = 1;
+      break;
+    case 36:
+      state.R_Trigger = 1;
+      state.Y_Button = 1;
+      break;
+    case 40:
+      state.R_Trigger = 1;
+      state.X_Button = 1;
+      break;
+    case 65:
+      state.ZL_Trigger = 1;
+      state.B_Button = 1;
+      break;
+    case 66:
+      state.ZL_Trigger = 1;
+      state.A_Button = 1;
+      break;
+    case 68:
+      state.ZL_Trigger = 1;
+      state.Y_Button = 1;
+      break;
+    case 72:
+      state.ZL_Trigger = 1;
+      state.X_Button = 1;
+      break;
+    case 129:
+      state.ZR_Trigger = 1;
+      state.B_Button = 1;
+      break;
+    case 130:
+      state.ZR_Trigger = 1;
+      state.A_Button = 1;
+      break;
+    case 132:
+      state.ZR_Trigger = 1;
+      state.Y_Button = 1;
+      break;
+    case 136:
+      state.ZR_Trigger = 1;
+      state.X_Button = 1;
+      break;
+    case 49:
+      state.L_Trigger = 1;
+      state.R_Trigger = 1;
+      state.B_Button = 1;
+      break;
+    case 50:
+      state.L_Trigger = 1;
+      state.R_Trigger = 1;
+      state.A_Button = 1;
+      break;
+    case 52:
+      state.L_Trigger = 1;
+      state.R_Trigger = 1;
+      state.Y_Button = 1;
+      break;
+    case 56:
+      state.L_Trigger = 1;
+      state.R_Trigger = 1;
+      state.X_Button = 1;
+      break;
+    case 81:
+      state.L_Trigger = 1;
+      state.ZL_Trigger = 1;
+      state.B_Button = 1;
+      break;
+    case 82:
+      state.L_Trigger = 1;
+      state.ZL_Trigger = 1;
+      state.A_Button = 1;
+      break;
+    case 84:
+      state.L_Trigger = 1;
+      state.ZL_Trigger = 1;
+      state.Y_Button = 1;
+      break;
+    case 88:
+      state.L_Trigger = 1;
+      state.ZL_Trigger = 1;
+      state.X_Button = 1;
+      break;
+    case 161:
+      state.R_Trigger = 1;
+      state.ZR_Trigger = 1;
+      state.B_Button = 1;
+      break;
+    case 162:
+      state.R_Trigger = 1;
+      state.ZR_Trigger = 1;
+      state.A_Button = 1;
+      break;
+    case 164:
+      state.R_Trigger = 1;
+      state.ZR_Trigger = 1;
+      state.Y_Button = 1;
+      break;
+    case 168:
+      state.R_Trigger = 1;
+      state.ZR_Trigger = 1;
+      state.X_Button = 1;
+      break;
+    case 193:
+      state.ZL_Trigger = 1;
+      state.ZR_Trigger = 1;
+      state.B_Button = 1;
+      break;
+    case 194:
+      state.ZL_Trigger = 1;
+      state.ZR_Trigger = 1;
+      state.A_Button = 1;
+      break;
+    case 196:
+      state.ZL_Trigger = 1;
+      state.ZR_Trigger = 1;
+      state.Y_Button = 1;
+      break;
+    case 200:
+      state.ZL_Trigger = 1;
+      state.ZR_Trigger = 1;
+      state.X_Button = 1;
+      break;
+  }
+  switch (Report[1]) {
+    case 1:
+      state.Select_Button = 1;
+      break;
+    case 2:
+      state.Start_Button = 1;
+      break;
+    case 16:
+      state.Home_Button = 1;
+      break;
+    case 32:
+      state.Action_Button = 1;
+      break;
+    case 4:
+      state.StickL_Button = 1;
+      break;
+    case 8:
+      state.StickR_Button = 1;
+      break;
+  }
+  switch (Report[2]) {
+    case 8:
+      state.D_Pad = 0;
+      break;
+    case 7:
+      state.D_Pad = 45;
+      break;
+    case 0:
+      state.D_Pad = 90;
+      break;
+    case 1:
+      state.D_Pad = 135;
+      break;
+    case 2:
+      state.D_Pad = 180;
+      break;
+    case 3:
+      state.D_Pad = 225;
+      break;
+    case 4:
+      state.D_Pad = 270;
+      break;
+    case 5:
+      state.D_Pad = 315;
+      break;
+    case 6:
+      state.D_Pad = 360;
+      break;
+  }
+
+
   if (!bluetoothInit) {
-    if (state.Analog_StickL_X > 0) {
+    if (state.Idle == 0) {
       return;
     } else {
       bluetoothInit = true;
@@ -173,7 +400,6 @@ void handleEvent() {
     }
   } else {
 
-    /*
     Serial.print("IDL");
     Serial.print(state.Idle);
     Serial.print(".");
@@ -222,8 +448,17 @@ void handleEvent() {
     Serial.print("STKR");
     Serial.print(state.StickR_Button);
     Serial.print(".");
+    Serial.print("ANA1`");
+    Serial.print(state.Analog_StickL_X);
+    Serial.print(",");
+    Serial.print(state.Analog_StickL_Y);
+    Serial.print(".");
+    Serial.print("ANA2`");
+    Serial.print(state.Analog_StickR_X);
+    Serial.print(",");
+    Serial.print(state.Analog_StickR_Y);
+    Serial.print(".");
     Serial.println("");
-    */
 
     doAction();
 
@@ -248,30 +483,6 @@ boolean driveW = false;
 
 void doAction(void) {
 
-  driveS = false;
-  driveN = false;
-  driveE = false;
-  driveW = false;
-
-  if (state.D_Pad > 0) {
-    //if (state.D_Pad >= 315 || state.D_Pad <= 045) { driveS = true; }
-    if (state.D_Pad == 360) {
-      driveW = true;
-    }
-    //if (state.D_Pad >= 135 && state.D_Pad <= 225) { driveN = true; }
-    if (state.D_Pad == 180) {
-      driveE = true;
-    }
-  }
-
-  if (driveW) { headX_target++; }
-  if (driveE) { headX_target--; }
-
-  if (headX_target <= headX_min) { headX_target = headX_min; }
-  if (headX_target >= headX_max) { headX_target = headX_max; }
-
-  if (!driveE && !driveW) { headX_target = headX_center; }
-
   if (state.Action_Button) {
     restDrive();
   }
@@ -281,12 +492,23 @@ void doAction(void) {
 }
 
 void restDrive(void) {
-  //Serial.println("restDrive");
+  Serial.println("restDrive");
 }
 
 void sendMove(void) {
-  //Serial.println(headX_target);
+
+  // Head movement:
+  float headX_target = headX_center;
+  float headY_target = headY_center;
+  if (state.Analog_StickR_X > 0) {
+    headX_target = map(state.Analog_StickR_X, Analog_StickR_X_Min, Analog_StickR_X_Max, headX_min, headX_max);
+  }
+  if (state.Analog_StickR_Y > 0) {
+    headY_target = map(state.Analog_StickR_Y, Analog_StickR_Y_Max, Analog_StickR_Y_Min, headY_min, headY_max);
+  }
   pwm.setPWM(headX_channel, 0, headX_target);
+  pwm.setPWM(headY_channel, 0, headY_target);
+
 }
 
 void wakeUp() {
