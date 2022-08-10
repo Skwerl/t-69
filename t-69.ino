@@ -388,7 +388,6 @@ void handleEvent() {
       break;
   }
 
-
   if (!bluetoothInit) {
     if (state.Idle == 0) {
       return;
@@ -475,11 +474,6 @@ void allButtonsReleased() {
 /*////////////////////////////////////////////////////////////////////////////////////////////////*/
 
 #define SERIAL_BAUD 115200
-
-boolean driveN = false;
-boolean driveS = false;
-boolean driveE = false;
-boolean driveW = false;
 
 void doAction(void) {
 
